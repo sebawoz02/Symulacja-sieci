@@ -77,7 +77,7 @@ class Network:
                                     edges.append(self.edges.index(edge))
                                     break
                         # maksymalna liczba pakietów możliwa do wysłania daną najkrótszą ścieżką
-                        sent = min([self.edges[idx].c / self.m - self.edges[idx].a for idx in edges])
+                        sent = min([self.edges[idx].c / self.m - self.edges[idx].a for idx in edges]) - 1
                         if sent > packets:
                             sent = packets
                         else:
@@ -96,14 +96,16 @@ class Network:
     # Metoda testująca niezawodność sieci.
     def test_reliability(self, T_max, reps):
         itr = 0
+        passed = 0
         for i in range(reps):
             try:
                 self.generate_a(split_packets=True)
+                itr += 1
                 if self.T < T_max:
-                    itr += 1
+                    passed += 1
             except nx.exception.NetworkXNoPath:
                 pass
-        return itr / reps * 100
+        return passed / itr * 100
 
 
 if __name__ == "__main__":
