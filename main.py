@@ -23,7 +23,7 @@ def good_edge(edge, v1, v2):
 def generate_matrix(n):
     matrix = []
     for i in range(n):
-        matrix.append([random.randint(1, 8) if i != j else 0 for j in range(n)])
+        matrix.append([random.randint(0, 20) if i != j else 0 for j in range(n)])
     return matrix
 
 
@@ -45,7 +45,7 @@ class Network:
         for vertex in self.verticies:
             nxGraph.add_node(vertex)
         # Do grafu dodawane są krawędzie które po przesłaniu dodatkowej liczby pakietów nie przekroczą przepustowości.
-        for edge in [ed for ed in self.edges if (ed.works and ed.c > ed.a + packets) or first_iter]:
+        for edge in [ed for ed in self.edges if (ed.works and ed.c / self.m > ed.a + packets) or first_iter]:
             nxGraph.add_edge(edge.v1, edge.v2)
         return nx.dijkstra_path(nxGraph, v_i, v_j)
 
@@ -87,11 +87,13 @@ class Network:
                         packets -= sent
         self.T = (1 / self.G) * sum(edge.a / ((edge.c / self.m) - edge.a) for edge in self.edges)
 
-    # Metoda generująca przepustwość dla krawędzi.
+    # Metoda generująca przepustwość dla krawędzi. W tym przypadku dwukrotnosc aktualnego przeplywu
     def generate_c(self):
-        m = max([edge.a for edge in self.edges])
         for edge in self.edges:
-            edge.c = random.randint(2, 5) * m * self.m
+            if edge.a != 0:
+                edge.c = edge.a * self.m * 2
+            else:
+                edge.c = sum(ed.a for ed in self.edges) / len(self.edges) * 2
 
     # Metoda testująca niezawodność sieci.
     def test_reliability(self, T_max, reps):
@@ -123,18 +125,18 @@ if __name__ == "__main__":
     try:
         t_max = float(args.t_max)
     except TypeError:
-        t_max = 0.99
+        t_max = 0.2
     try:
         M = int(args.avg_size)
     except TypeError:
         M = 10
 
-    _verticies = [i for i in range(20)]
-    _edges = [Edge(0, 15), Edge(0, 1), Edge(0, 5), Edge(1, 6), Edge(1, 2), Edge(2, 3), Edge(2, 7), Edge(3, 4),
-              Edge(3, 8), Edge(4, 19), Edge(4, 9), Edge(5, 10), Edge(5, 6), Edge(6, 11), Edge(6, 7), Edge(7, 8),
-              Edge(7, 12), Edge(8, 9), Edge(8, 13), Edge(9, 14), Edge(10, 15), Edge(10, 11), Edge(11, 12), Edge(11, 16),
-              Edge(12, 13), Edge(12, 17), Edge(13, 14), Edge(13, 18), Edge(14, 19), Edge(15, 19), Edge(15, 16),
-              Edge(16, 17), Edge(17, 18), Edge(18, 19)]
+    _verticies = [i for i in range(20)]     # 20 wierzcholkow i 31 krawedzi
+    _edges = [Edge(0, 1), Edge(0, 4), Edge(0, 5), Edge(0, 3), Edge(1, 2), Edge(2, 3),
+              Edge(3, 6), Edge(3, 7), Edge(4, 12), Edge(4, 8), Edge(5, 6), Edge(5, 8), Edge(6, 11),
+              Edge(7, 11), Edge(7, 15), Edge(8, 12), Edge(8, 13), Edge(8, 9), Edge(9, 10), Edge(10, 11), Edge(11, 14),
+              Edge(11, 15), Edge(12, 16), Edge(13, 16), Edge(13, 14), Edge(14, 19), Edge(15, 19),
+              Edge(16, 19), Edge(16, 17), Edge(17, 18), Edge(18, 19)]
     network = Network(n_matrix=generate_matrix(20), edges=_edges, verticies=_verticies, m=M, p=pr)
 
     if args.zad == "1":
