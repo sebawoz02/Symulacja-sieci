@@ -1,4 +1,4 @@
-import random
+mport random
 import networkx as nx
 import argparse
 
@@ -106,7 +106,8 @@ class Network:
     # Metoda generująca przepustwość dla krawędzi. W tym przypadku dwukrotnosc aktualnego przeplywu
     def generate_c(self, val):
         for edge in self.edges:
-            edge.c = val
+            if edge.c == 0:
+                edge.c = val
 
     # Metoda zwiększająca funkcje przepustowości o stałą wartość
     def increase_c(self, const):
@@ -181,29 +182,43 @@ if __name__ == "__main__":
     except TypeError:
         M = 10
     try:
-        if int(args.graph) == 1:
-            c_val = 6000
-        else:
-            c_val = 5000
-    except TypeError:
-        print("Nie wybrano grafu")
-        exit(-1)
-
-    _verticies = [i for i in range(20)]  # 20 wierzcholkow i 31 krawedzi
-    _edges = [Edge(0, 1), Edge(1, 2), Edge(2, 3), Edge(3, 4), Edge(4, 5), Edge(5, 6), Edge(6, 7), Edge(7, 8),
-              Edge(8, 9), Edge(9, 10), Edge(10, 11), Edge(11, 12), Edge(12, 13), Edge(13, 14), Edge(14, 15),
-              Edge(15, 16), Edge(16, 17), Edge(17, 18), Edge(18, 19), Edge(19, 0),
-              Edge(19, 9, 12000), Edge(0, 10, 12000)]
-    _edges2 = [Edge(0, 1), Edge(1, 2), Edge(0, 5, 3000), Edge(2, 3), Edge(2, 7, 3000), Edge(3, 4),
-               Edge(4, 9, 3000), Edge(5, 10, 3000), Edge(5, 6), Edge(6, 7), Edge(7, 8), Edge(8, 9), Edge(9, 14, 3000),
-               Edge(10, 11), Edge(10, 15, 3000), Edge(11, 12), Edge(12, 13), Edge(12, 17, 3000), Edge(13, 14),
-               Edge(14, 19, 3000), Edge(15, 16), Edge(16, 17), Edge(17, 18), Edge(18, 19)]
-    if int(args.graph) == 1:
-        network = Network(n_matrix=generate_matrix(20), edges=_edges, verticies=_verticies, m=M, p=pr, val=c_val)
-    else:
-        network = Network(n_matrix=generate_matrix(20), edges=_edges2, verticies=_verticies, m=M, p=pr, val=c_val)
+        file = open(args.graph)
+        V, E = file.readline().split(" ")
+        _edges = []
+        i = 0
+        for line in file.readlines():
+            if i == 0:
+                i += 1
+            else:
+                v1, v2, c = line.split(" ")
+                _edges.append(Edge(int(v1), int(v2), int(c)))
+        network = Network(n_matrix=generate_matrix(int(V)), edges=_edges, verticies=[v for v in range(int(V))], m=M,
+                          p=pr, val=0)
+    except FileNotFoundError:
+        try:
+            if int(args.graph) == 1:
+                c_val = 6000
+            else:
+                c_val = 5000
+            _verticies = [i for i in range(20)]  # 20 wierzcholkow i 31 krawedzi
+            _edges = [Edge(0, 1), Edge(1, 2), Edge(2, 3), Edge(3, 4), Edge(4, 5), Edge(5, 6), Edge(6, 7), Edge(7, 8),
+                      Edge(8, 9), Edge(9, 10), Edge(10, 11), Edge(11, 12), Edge(12, 13), Edge(13, 14), Edge(14, 15),
+                      Edge(15, 16), Edge(16, 17), Edge(17, 18), Edge(18, 19), Edge(19, 0),
+                      Edge(19, 9, 12000), Edge(0, 10, 12000)]
+            _edges2 = [Edge(0, 1), Edge(1, 2), Edge(0, 5, 3000), Edge(2, 3), Edge(2, 7, 3000), Edge(3, 4),
+                       Edge(4, 9, 3000), Edge(5, 10, 3000), Edge(5, 6), Edge(6, 7), Edge(7, 8), Edge(8, 9),
+                       Edge(9, 14, 3000),
+                       Edge(10, 11), Edge(10, 15, 3000), Edge(11, 12), Edge(12, 13), Edge(12, 17, 3000), Edge(13, 14),
+                       Edge(14, 19, 3000), Edge(15, 16), Edge(16, 17), Edge(17, 18), Edge(18, 19)]
+            if int(args.graph) == 1:
+                network = Network(n_matrix=generate_matrix(20), edges=_edges, verticies=_verticies, m=M, p=pr, val=c_val)
+            else:
+                network = Network(n_matrix=generate_matrix(20), edges=_edges2, verticies=_verticies, m=M, p=pr, val=c_val)
+        except TypeError:
+            print("Nie wybrano grafu")
+            exit(-1)
     if args.zad == "1":
-        reli = network.test_reliability(t_max, 1000)
+        reli = network.test_reliability(t_max, 2000)
         print(f"Niezawodność {reli[0]}% ({reli[2]}% przekroczone opóźnienie,"
               f" {round(100 - reli[0] - reli[2], 2)}% przekroczona przepustowosc)"
               f", Czestotliwość rozspójnień - {reli[1]}%")
@@ -261,4 +276,3 @@ if __name__ == "__main__":
         except ValueError:
             print("Błędne parametry")
             exit(-1)
-
